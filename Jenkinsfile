@@ -27,7 +27,7 @@ node ('ec2'){
   //Deploy image to staging in ECS
   def buildenv = docker.image('cloudbees/java-build-tools:0.0.7.1')
   buildenv.inside {
-    wrap([$class: 'AmazonAwsCliBuildWrapper', credentialsId: 'ec2', defaultRegion: 'us-east-1']) {
+    wrap([$class: 'SimpleBuildWrapper']) {
         sh "aws ecs update-service --service staging-game  --cluster staging --desired-count 0"
         timeout(time: 5, unit: 'MINUTES') {
             waitUntil {
