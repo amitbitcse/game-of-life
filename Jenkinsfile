@@ -1,10 +1,10 @@
 //Picking a build agent labeled "ec2" to run pipeline on
-node {
+node ('ec2'){
   stage 'Pull from SCM'  
   //Passing the pipeline the ID of my GitHub credentials and specifying the repo for my app
   git credentialsId: 'GitHub-Amit', url: 'https://github.com/amitbitcse/game-of-life.git'
-  //stage 'Test Code'  
-  //sh 'mvn install'
+  stage 'Test Code'  
+  sh 'mvn install'
 
   stage 'Build app' 
   //Running the maven build and archiving the war
@@ -27,7 +27,7 @@ node {
   //Deploy image to staging in ECS
   def buildenv = docker.image('cloudbees/java-build-tools:0.0.7.1')
   buildenv.inside {
-    wrap([$class: 'AmazonAwsCliBuildWrapper', credentialsId: '20f6b2e4-7fbe-4655-8b4b-9842ec81bce2', defaultRegion: 'us-east-1']) {
+    wrap([$class: 'AmazonAwsCliBuildWrapper', credentialsId: 'ec2', defaultRegion: 'us-east-1']) {
         sh "aws ecs update-service --service staging-game  --cluster staging --desired-count 0"
         timeout(time: 5, unit: 'MINUTES') {
             waitUntil {
