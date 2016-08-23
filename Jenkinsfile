@@ -13,7 +13,7 @@ node {
   
   stage 'Package Image'
   //Packaging the image into a Docker image
-  def pkg = docker.build ('lavaliere/game-of-life', '.')
+  def pkg = docker.build ('amitbitcse/game-of-life', '.')
 
   
   stage 'Push Image to DockerHub'
