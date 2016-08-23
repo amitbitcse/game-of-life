@@ -2,7 +2,7 @@
 node {
   stage 'Pull from SCM'  
   //Passing the pipeline the ID of my GitHub credentials and specifying the repo for my app
-  git credentialsId: '32f2c3c2-c19e-431a-b421-a4376fce1186', url: 'https://github.com/lavaliere/game-of-life.git'
+  git credentialsId: 'GitHub-Amit', url: 'https://github.com/amitbitcse/game-of-life.git'
   //stage 'Test Code'  
   //sh 'mvn install'
 
@@ -18,7 +18,7 @@ node {
   
   stage 'Push Image to DockerHub'
   //Pushing the packaged app in image into DockerHub
-  docker.withRegistry ('https://index.docker.io/v1/', 'Docker Registry') {
+  docker.withRegistry ('https://index.docker.io/v1/', 'DockerRegistry-Amit') {
       sh 'ls -lart' 
       pkg.push 'docker-demo'
   }
