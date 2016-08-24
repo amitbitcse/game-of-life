@@ -21,12 +21,33 @@ node ('ec2'){
   //docker.withRegistry ('https://index.docker.io/v1/', 'DockerRegistry-Amit') {
   docker.withRegistry ('https://686703771370.dkr.ecr.us-east-1.amazonaws.com', 'ecr:AWS-Amit') {
       sh 'ls -lart' 
-      pkg.push 'docker-demo'
+      pkg.push '$BUILD_NUMBER'
   }
   
   stage 'Stage image'
   //Deploy image to staging in ECS
-  sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
+  
+  // Fetch Task Definition & Save into a json file
+  sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > .GameOfLife-Task-v_${BUILD_NUMBER}.json"
+  
+  // Change Docker image in above json file & create new json file with build number
+  def ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${BUILD_NUMBER}.json")
+  def ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
+  println "$ecsTaskDef"
+  def ecsTaskDefContainer = ecsServicesStatus.containerDefinitions[0]
+  println "$ecsTaskDefContainer"
+  ecsTaskDefContainer.set('image', '686703771370.dkr.ecr.us-east-1.amazonaws.com/game-of-life:${BUILD_NUMBER}')
+  ecsTaskDefAsJson = new groovy.json.JsonOutput().toJson(ecsTaskDef)
+  println "$ecsTaskDefAsJson"
+  readFile(".GameOfLife-Task-v_${BUILD_NUMBER}.json", ecsTaskDefAsJson)
+			
+  // Create New Task Defition using above created json file with latest
+  sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://.GameOfLife-Task-v_${BUILD_NUMBER}.json"
+  
+  // Update Service with new Task Definition
+  def TASK_REVISION=`aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'`
+  
+  sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 0"
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			sh "aws ecs describe-services --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster  > .amazon-ecs-service-status.json"
