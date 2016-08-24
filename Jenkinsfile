@@ -13,13 +13,13 @@ node ('ec2'){
   
   stage 'Package Image'
   //Packaging the image into a Docker image
-  def pkg = docker.build ('amitbitcse/game-of-life', '.')
+  def pkg = docker.build ('game-of-life', '.')
 
   
   stage 'Push Image to DockerHub'
   //Pushing the packaged app in image into DockerHub
   //docker.withRegistry ('https://index.docker.io/v1/', 'DockerRegistry-Amit') {
-  docker.withRegistry ('https://686703771370.dkr.ecr.us-east-1.amazonaws.com/game-of-life', 'ecr:AWS-Amit') {
+  docker.withRegistry ('https://686703771370.dkr.ecr.us-east-1.amazonaws.com', 'ecr:AWS-Amit') {
       sh 'ls -lart' 
       pkg.push 'docker-demo'
   }
