@@ -25,87 +25,82 @@ node ('ec2'){
   
   stage 'Stage image'
   //Deploy image to staging in ECS
-  def buildenv = docker.image('cloudbees/java-build-tools:0.0.7.1')
-  buildenv.inside {
-    wrap([$class: 'SimpleBuildWrapper']) {
-        sh "aws ecs update-service --service staging-game  --cluster staging --desired-count 0"
-        timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-                sh "aws ecs describe-services --services staging-game  --cluster staging  > .amazon-ecs-service-status.json"
+  sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
+	timeout(time: 5, unit: 'MINUTES') {
+		waitUntil {
+			sh "aws ecs describe-services --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster  > .amazon-ecs-service-status.json"
 
-                // parse `describe-services` output
-                def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
-                def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
-                println "$ecsServicesStatus"
-                def ecsServiceStatus = ecsServicesStatus.services[0]
-                return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
-            }
-        }
-        sh "aws ecs update-service --service staging-game  --cluster staging --desired-count 1"
-        timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-                sh "aws ecs describe-services --services staging-game --cluster staging > .amazon-ecs-service-status.json"
+			// parse `describe-services` output
+			def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
+			def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
+			println "$ecsServicesStatus"
+			def ecsServiceStatus = ecsServicesStatus.services[0]
+			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
+		}
+	}
+	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 1"
+	timeout(time: 5, unit: 'MINUTES') {
+		waitUntil {
+			sh "aws ecs describe-services --service Staging-GameOfLife-Service --cluster Staging-GameOfLife-Cluster > .amazon-ecs-service-status.json"
 
-                // parse `describe-services` output
-                def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
-                def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
-                println "$ecsServicesStatus"
-                def ecsServiceStatus = ecsServicesStatus.services[0]
-                return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
-            }
-        }
-        timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-                try {
-                    sh "curl http://52.200.92.100:80"
-                    return true
-                } catch (Exception e) {
-                    return false
-                }
-            }
-        }
-        echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://52.200.92.100:80"
-        input 'Does staging http://52.200.92.100:80 look okay?'
-  
-  stage 'Deploy to ECS'
-  //Deploy image to production in ECS
-        sh "aws ecs update-service --service production-deploy-game  --cluster production --desired-count 0"
-        timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-                sh "aws ecs describe-services --service production-deploy-game  --cluster production   > .amazon-ecs-service-status.json"
+			// parse `describe-services` output
+			def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
+			def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
+			println "$ecsServicesStatus"
+			def ecsServiceStatus = ecsServicesStatus.services[0]
+			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
+		}
+	}
+	timeout(time: 5, unit: 'MINUTES') {
+		waitUntil {
+			try {
+				sh "curl http://52.200.92.100:80"
+				return true
+			} catch (Exception e) {
+				return false
+			}
+		}
+	}
+	echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://52.200.92.100:80"
+	input 'Does staging http://52.200.92.100:80 look okay?'
 
-                // parse `describe-services` output
-                def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
-                def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
-                println "$ecsServicesStatus"
-                def ecsServiceStatus = ecsServicesStatus.services[0]
-                return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
-            }
-        }
-        sh "aws ecs update-service --service production-deploy-game  --cluster production  --desired-count 1"
-        timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-                sh "aws ecs describe-services --service production-deploy-game  --cluster production  > .amazon-ecs-service-status.json"
+	stage 'Deploy to ECS'
+	//Deploy image to production in ECS
+	sh "aws ecs update-service --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster --desired-count 0"
+	timeout(time: 5, unit: 'MINUTES') {
+		waitUntil {
+			sh "aws ecs describe-services --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster   > .amazon-ecs-service-status.json"
 
-                // parse `describe-services` output
-                def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
-                def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
-                println "$ecsServicesStatus"
-                def ecsServiceStatus = ecsServicesStatus.services[0]
-                return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
-            }
-        }
-        timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-                try {
-                    sh "curl http://52.202.249.4:80"
-                    return true
-                } catch (Exception e) {
-                    return false
-                }
-            }
-        }
-        echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://52.202.249.4:80"
-    }
-  }
+			// parse `describe-services` output
+			def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
+			def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
+			println "$ecsServicesStatus"
+			def ecsServiceStatus = ecsServicesStatus.services[0]
+			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
+		}
+	}
+	sh "aws ecs update-service --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster  --desired-count 1"
+	timeout(time: 5, unit: 'MINUTES') {
+		waitUntil {
+			sh "aws ecs describe-services --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster  > .amazon-ecs-service-status.json"
+
+			// parse `describe-services` output
+			def ecsServicesStatusAsJson = readFile(".amazon-ecs-service-status.json")
+			def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
+			println "$ecsServicesStatus"
+			def ecsServiceStatus = ecsServicesStatus.services[0]
+			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
+		}
+	}
+	timeout(time: 5, unit: 'MINUTES') {
+		waitUntil {
+			try {
+				sh "curl http://52.202.249.4:80"
+				return true
+			} catch (Exception e) {
+				return false
+			}
+		}
+	}
+	echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://52.202.249.4:80"
 }
