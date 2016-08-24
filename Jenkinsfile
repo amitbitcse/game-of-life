@@ -45,7 +45,7 @@ node ('ec2'){
   sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://.GameOfLife-Task-v_${BUILD_NUMBER}.json"
   
   // Update Service with new Task Definition
-  def TASK_REVISION=`aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'`
+  def TASK_REVISION= sh `aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'`
   
   sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 0"
 	timeout(time: 5, unit: 'MINUTES') {
