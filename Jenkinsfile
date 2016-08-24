@@ -34,7 +34,7 @@ node ('ec2'){
   def ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${BUILD_NUMBER}.json")
   def ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
   println "$ecsTaskDef"
-  def ecsTaskDefContainer = ecsServicesStatus.containerDefinitions[0]
+  def ecsTaskDefContainer = ecsTaskDef.containerDefinitions[0]
   println "$ecsTaskDefContainer"
   ecsTaskDefContainer.set('image', '686703771370.dkr.ecr.us-east-1.amazonaws.com/game-of-life:${BUILD_NUMBER}')
   ecsTaskDefAsJson = new groovy.json.JsonOutput().toJson(ecsTaskDef)
@@ -45,7 +45,13 @@ node ('ec2'){
   sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://.GameOfLife-Task-v_${BUILD_NUMBER}.json"
   
   // Update Service with new Task Definition
-  def TASK_REVISION= sh `aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'`
+  #def TASK_REVISION= sh `aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'`
+  sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > .GameOfLife-Task-v_${BUILD_NUMBER}.json"
+  ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${BUILD_NUMBER}.json")
+  ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
+  println "$ecsTaskDef"
+  def TASK_REVISION = ecsTaskDef.get('revision')
+  println "$TASK_REVISION"
   
   sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 0"
 	timeout(time: 5, unit: 'MINUTES') {
