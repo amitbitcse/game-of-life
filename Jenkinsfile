@@ -55,15 +55,15 @@ node ('ec2'){
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			try {
-				sh "curl http://52.200.92.100:80"
+				sh "curl http://staging-gameoflife-elb-1356454014.us-east-1.elb.amazonaws.com/"
 				return true
 			} catch (Exception e) {
 				return false
 			}
 		}
 	}
-	echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://52.200.92.100:80"
-	input 'Does staging http://52.200.92.100:80 look okay?'
+	echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://staging-gameoflife-elb-1356454014.us-east-1.elb.amazonaws.com/"
+	input 'Does staging http://staging-gameoflife-elb-1356454014.us-east-1.elb.amazonaws.com/ look okay?'
 
 	stage 'Deploy to ECS'
 	//Deploy image to production in ECS
@@ -96,12 +96,12 @@ node ('ec2'){
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			try {
-				sh "curl http://52.202.249.4:80"
+				sh "curl http://production-gameoflife-elb-1933452439.us-east-1.elb.amazonaws.com/"
 				return true
 			} catch (Exception e) {
 				return false
 			}
 		}
 	}
-	echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://52.202.249.4:80"
+	echo "gameoflife#${env.BUILD_NUMBER} SUCCESSFULLY deployed to http://production-gameoflife-elb-1933452439.us-east-1.elb.amazonaws.com/"
 }
