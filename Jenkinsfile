@@ -45,7 +45,6 @@ node ('ec2'){
   sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://.GameOfLife-Task-v_${BUILD_NUMBER}.json"
   
   // Update Service with new Task Definition
-  #def TASK_REVISION= sh 'aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//''
   sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > .GameOfLife-Task-v_${BUILD_NUMBER}.json"
   ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${BUILD_NUMBER}.json")
   ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
