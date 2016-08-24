@@ -21,7 +21,7 @@ node ('ec2'){
   //docker.withRegistry ('https://index.docker.io/v1/', 'DockerRegistry-Amit') {
   docker.withRegistry ('https://686703771370.dkr.ecr.us-east-1.amazonaws.com', 'ecr:AWS-Amit') {
       sh 'ls -lart' 
-      pkg.push '${env.BUILD_NUMBER}'
+      pkg.push '${BUILD_NUMBER}'
   }
   
   stage 'Stage image'
