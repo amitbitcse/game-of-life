@@ -34,9 +34,13 @@ node ('ec2'){
 	sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
 
 	// Update Service with new Task Definition
-	sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
-	TASK_REVISION = new groovy.json.JsonSlurper().parseText(readFile("GameOfLife-Task-v_${env.BUILD_NUMBER}.json")).taskDefinition.get('revision')
-	println "Task Revision - $TASK_REVISION"
+	//sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
+	//ecsTaskDefAsJson = readFile("GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
+	//ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
+	//println "$ecsTaskDef"
+	//TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
+	sh 'TASK_REVISION = aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | cut -d":" -f2 | sed "s/ //g"'
+	println "$TASK_REVISION"
 
 	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
 	timeout(time: 5, unit: 'MINUTES') {
