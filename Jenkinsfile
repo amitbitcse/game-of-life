@@ -39,7 +39,8 @@ node ('ec2'){
 	//ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
 	//println "$ecsTaskDef"
 	//TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
-	TASK_REVISION=$(sh 'aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | cut -d":" -f2 | sed "s/ //g"')
+	sh 'aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | cut -d":" -f2 | sed "s/ //g" > .GameOfLife-Task-Revision'
+	var TASK_REVISION = readFile(".GameOfLife-Task-Revision")
 	println "${TASK_REVISION}"
 
 	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
