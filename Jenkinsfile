@@ -34,11 +34,6 @@ node ('ec2'){
 	sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
 
 	// Update Service with new Task Definition
-	//sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
-	//ecsTaskDefAsJson = readFile("GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
-	//ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
-	//println "$ecsTaskDef"
-	//TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
 	sh 'aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | cut -d":" -f2 | sed "s/ //g" > .GameOfLife-Task-Revision'
 	def TASK_REVISION = readFile(".GameOfLife-Task-Revision")
 	println "${TASK_REVISION}"
@@ -66,7 +61,7 @@ node ('ec2'){
 			def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
 			println "$ecsServicesStatus"
 			def ecsServiceStatus = ecsServicesStatus.services[0]
-			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
+			return ecsServiceStatus.get('runningCount') == 1 && ecsServiceStatus.get('status') == "ACTIVE"
 		}
 	}
 	timeout(time: 5, unit: 'MINUTES') {
@@ -107,7 +102,7 @@ node ('ec2'){
 			def ecsServicesStatus = new groovy.json.JsonSlurper().parseText(ecsServicesStatusAsJson)
 			println "$ecsServicesStatus"
 			def ecsServiceStatus = ecsServicesStatus.services[0]
-			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
+			return ecsServiceStatus.get('runningCount') == 1 && ecsServiceStatus.get('status') == "ACTIVE"
 		}
 	}
 	timeout(time: 5, unit: 'MINUTES') {
