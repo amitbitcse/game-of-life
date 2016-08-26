@@ -42,9 +42,6 @@ node ('ec2'){
 	println "$TASK_REVISION"
 
 	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
-	
-	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION}"
-	
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			sh "aws ecs describe-services --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster  > .amazon-ecs-service-status.json"
@@ -57,7 +54,7 @@ node ('ec2'){
 			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
 		}
 	}
-	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 1"
+	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 1"
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			sh "aws ecs describe-services --service Staging-GameOfLife-Service --cluster Staging-GameOfLife-Cluster > .amazon-ecs-service-status.json"
@@ -86,9 +83,6 @@ node ('ec2'){
   stage 'Deploy to ECS'
 	//Deploy image to production in ECS
 	sh "aws ecs update-service --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster --desired-count 0"
-	
-	sh "aws ecs update-service --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION}"
-	
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			sh "aws ecs describe-services --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster   > .amazon-ecs-service-status.json"
@@ -101,7 +95,7 @@ node ('ec2'){
 			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
 		}
 	}
-	sh "aws ecs update-service --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster  --desired-count 1"
+	sh "aws ecs update-service --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 1"
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			sh "aws ecs describe-services --service Production-GameOfLife-Service  --cluster Production-GameOfLife-Cluster  > .amazon-ecs-service-status.json"
