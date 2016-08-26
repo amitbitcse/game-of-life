@@ -28,7 +28,7 @@ node ('ec2'){
   //Deploy image to staging in ECS
   
   // Create Json file from template
-  sh 'sed -e "s;%BUILD_NUMBER%;${env.BUILD_NUMBER};g" GameOfLife-Task.json > GameOfLife-Task-v_${env.BUILD_NUMBER}.json'
+  sh 'sed -e "s;%BUILD_NUMBER%;${BUILD_NUMBER};g" GameOfLife-Task.json > GameOfLife-Task-v_${BUILD_NUMBER}.json'
   
   // Change Docker image in above json file & create new json file with build number
   //def ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
