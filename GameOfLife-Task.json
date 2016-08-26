@@ -15,6 +15,5 @@
 			"memory": 256, 
 			"essential": true
 		}
-	], 
-	"revision": 2
+	]
 }
