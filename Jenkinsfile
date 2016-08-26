@@ -34,7 +34,7 @@ node ('ec2'){
   def ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
   def ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
   println "$ecsTaskDef"
-  def ecsTaskDefContainer = ecsTaskDef.containerDefinitions[0]
+  def ecsTaskDefContainer = ecsTaskDef.taskDefinition.containerDefinitions[0]
   println "$ecsTaskDefContainer"
   ecsTaskDefContainer.set('image', '686703771370.dkr.ecr.us-east-1.amazonaws.com/game-of-life:${env.BUILD_NUMBER}')
   ecsTaskDefAsJson = new groovy.json.JsonOutput().toJson(ecsTaskDef)
@@ -49,7 +49,7 @@ node ('ec2'){
   ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
   ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
   println "$ecsTaskDef"
-  def TASK_REVISION = ecsTaskDef.get('revision')
+  def TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
   println "$TASK_REVISION"
   
   sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 0"
