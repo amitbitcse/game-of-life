@@ -39,8 +39,8 @@ node ('ec2'){
 	//ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
 	//println "$ecsTaskDef"
 	//TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
-	sh 'aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | cut -d":" -f2 | sed "s/ //g" | read TASK_REVISION'
-	println "${env.TASK_REVISION}"
+	TASK_REVISION = sh 'aws ecs describe-task-definition --task-definition GameOfLife-Task | egrep "revision" | cut -d":" -f2 | sed "s/ //g"'
+	println "${TASK_REVISION}"
 
 	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
 	timeout(time: 5, unit: 'MINUTES') {
@@ -55,7 +55,9 @@ node ('ec2'){
 			return ecsServiceStatus.get('runningCount') == 0 && ecsServiceStatus.get('status') == "ACTIVE"
 		}
 	}
-	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${env.TASK_REVISION} --desired-count 1"
+	println "${TASK_REVISION}"
+	println "${env.TASK_REVISION}"
+	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --task-definition GameOfLife-Task:${TASK_REVISION} --desired-count 1"
 	timeout(time: 5, unit: 'MINUTES') {
 		waitUntil {
 			sh "aws ecs describe-services --service Staging-GameOfLife-Service --cluster Staging-GameOfLife-Cluster > .amazon-ecs-service-status.json"
