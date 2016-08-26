@@ -21,32 +21,32 @@ node ('ec2'){
   //docker.withRegistry ('https://index.docker.io/v1/', 'DockerRegistry-Amit') {
   docker.withRegistry ('https://686703771370.dkr.ecr.us-east-1.amazonaws.com', 'ecr:AWS-Amit') {
       sh 'ls -lart' 
-      pkg.push '${BUILD_NUMBER}'
+      pkg.push 'v_${BUILD_NUMBER}'
   }
   
   stage 'Stage image'
   //Deploy image to staging in ECS
   
-  // Fetch Task Definition & Save into a json file
-  sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > .GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
+  // Create Json file from template
+  sh 'sed -e "s;%BUILD_NUMBER%;${env.BUILD_NUMBER};g" GameOfLife-Task.json > GameOfLife-Task-v_${env.BUILD_NUMBER}.json'
   
   // Change Docker image in above json file & create new json file with build number
-  def ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
-  def ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
-  println "$ecsTaskDef"
-  def ecsTaskDefContainer = ecsTaskDef.taskDefinition.containerDefinitions[0]
-  println "$ecsTaskDefContainer"
-  ecsTaskDefContainer.set('image', '686703771370.dkr.ecr.us-east-1.amazonaws.com/game-of-life:${env.BUILD_NUMBER}')
-  ecsTaskDefAsJson = new groovy.json.JsonOutput().toJson(ecsTaskDef)
-  println "$ecsTaskDefAsJson"
-  readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json", ecsTaskDefAsJson)
+  //def ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
+  //def ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
+  //println "$ecsTaskDef"
+  //def ecsTaskDefContainer = ecsTaskDef.taskDefinition.containerDefinitions[0]
+  //println "$ecsTaskDefContainer"
+  //ecsTaskDefContainer.set('image', '686703771370.dkr.ecr.us-east-1.amazonaws.com/game-of-life:${env.BUILD_NUMBER}')
+  //ecsTaskDefAsJson = new groovy.json.JsonOutput().toJson(ecsTaskDef)
+  //println "$ecsTaskDefAsJson"
+  //readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json", ecsTaskDefAsJson)
 			
   // Create New Task Defition using above created json file with latest
-  sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://.GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
+  sh "aws ecs register-task-definition --family GameOfLife-Task --cli-input-json file://GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
   
   // Update Service with new Task Definition
-  sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > .GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
-  ecsTaskDefAsJson = readFile(".GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
+  sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
+  ecsTaskDefAsJson = readFile("GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
   ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
   println "$ecsTaskDef"
   def TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
