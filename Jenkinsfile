@@ -35,10 +35,10 @@ node ('ec2'){
 
 	// Update Service with new Task Definition
 	sh "aws ecs describe-task-definition --task-definition GameOfLife-Task  > GameOfLife-Task-v_${env.BUILD_NUMBER}.json"
-	def ecsTaskDefAsJson = readFile("GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
-	def ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
+	ecsTaskDefAsJson = readFile("GameOfLife-Task-v_${env.BUILD_NUMBER}.json")
+	ecsTaskDef = new groovy.json.JsonSlurper().parseText(ecsTaskDefAsJson)
 	println "$ecsTaskDef"
-	def TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
+	TASK_REVISION = ecsTaskDef.taskDefinition.get('revision')
 	println "$TASK_REVISION"
 
 	sh "aws ecs update-service --service Staging-GameOfLife-Service  --cluster Staging-GameOfLife-Cluster --desired-count 0"
